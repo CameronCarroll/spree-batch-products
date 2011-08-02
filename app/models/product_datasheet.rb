@@ -23,12 +23,22 @@ class ProductDatasheet < ActiveRecord::Base
     @records_failed = 0
     @failed_queries = 0
     
+    
+    #// Passing 1 into each(1) defines how many rows to skip before processing the spreadsheet.
+    #// Since the first row is already defined in headers=worksheet.row(0), we start at the data.
     worksheet.each(1) do |row|
       attr_hash = {}
+      
+      #// Uses pre-defined headers array and associates each header value with its target value.
       for i in columns[0]..columns[1]
         attr_hash[headers[i]] = row[i] unless row[i].nil?
       end
-      if headers[0] == 'id' and row[0].nil?
+      
+      #// Check for empty ID, which signifies record creation:
+      #// If record is to be created, checks for product_id column, which signifies variant creation.
+      if headers[0] == 'id' && row[0].nil? && headers[1] == 'product_id' && row[1].nil?
+        create_variant(attr_hash)
+      elsif headers[0] == 'id' && row[0].nil?
         create_product(attr_hash)
       elsif Product.column_names.include?(headers[0])
         process_products(headers[0], row[0], attr_hash)
@@ -47,8 +57,15 @@ class ProductDatasheet < ActiveRecord::Base
     self.update_attributes(attr_hash)
   end
   
+  
+  
   def create_product(attr_hash)
     new_product = Product.new(attr_hash)
+    @failed_queries = @failed_queries + 1 if not new_product.save
+  end
+  
+  def create_variant(attr_hash)
+    new_variant = Variant.new(attr_hash)
     @failed_queries = @failed_queries + 1 if not new_product.save
   end
   
