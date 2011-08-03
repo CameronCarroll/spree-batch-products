@@ -40,13 +40,13 @@ end
 @failed_queries = 0
 end #process
   
-  def perform(sheet)
+  def perform(sheet, columns, headers)
 
     #// Passing 1 into each(1) defines how many rows to skip before processing the spreadsheet.
     #// Since the first row is already defined in headers=worksheet.row(0), we start at the data.
     sheet.each(1) do |row|
       attr_hash = {}
-      load_headers(row)
+      load_headers(row, columns, headers)
 
       #// Checks first header value for a blank 'id', which signifies record creation.
       #// If record is to be created, checks for product_id column, which signifies variant creation.
@@ -74,7 +74,7 @@ end #process
   
    #// Uses pre-defined headers array and associates each header value with its target value.
   #// Iterates between the first used and the first unused columns and grabs the header and row value.  
-  def load_headers(row)
+  def load_headers(row, columns, headers)
     for i in columns[0]..columns[1]
      attr_hash[headers[i]] = row[i] unless row[i].nil?
     end
