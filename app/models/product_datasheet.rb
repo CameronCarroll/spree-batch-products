@@ -17,21 +17,20 @@ end
 #// Opens up a workbook and its two worksheets. The first sheet is used to define products,
 #// and the second sheet is used to define variants.
 
-#// A note on dimensions: values 0-3 of the return array contain the first used column, and the first
-#// unused column. See documentation at http://spreadsheet.rubyforge.org/Spreadsheet/Worksheet.html
+
 def process
   uploaded_workbook = Spreadsheet.open self.path
 
 product_sheet = uploaded_workbook.worksheet(0)
 product_columns = [product_sheet.dimensions[2], product_sheet.dimensions[3]]
 product_headers = product_sheet.row(0)
-perform(product_sheet)
+perform(product_sheet, columns, headers)
 
 if not uploaded_workbook.worksheet(1).nil?
   variant_sheet = uploaded_workbook.worksheet(1)
   variant_columns = [variant_sheet.dimensions[2], variant_sheet.dimensions[3]]
   variant_headers = variant_sheet.row(0)
-  perform(variant_sheet)
+  perform(variant_sheet, columns, headers)
 end
 
 @records_matched = 0
@@ -40,12 +39,16 @@ end
 @failed_queries = 0
 end #process
   
-  def perform(sheet, columns, headers)
-
+  def perform(sheet)
     #// Passing 1 into each(1) defines how many rows to skip before processing the spreadsheet.
     #// Since the first row is already defined in headers=worksheet.row(0), we start at the data.
     sheet.each(1) do |row|
       attr_hash = {}
+    #// A note on dimensions: values 0-3 of the return array contain the first used column, and the first
+    #// unused column. See documentation at http://spreadsheet.rubyforge.org/Spreadsheet/Worksheet.html
+    #// Load columns and headers for the new sheet:
+      columns = [sheet.dimensions[2], sheet.dimensions[3]]
+      headers = sheet.row(0)
       load_headers(row, columns, headers)
 
       #// Checks first header value for a blank 'id', which signifies record creation.
@@ -63,14 +66,17 @@ end #process
         #TODO do something when the batch update for the row in question is invalid
         @failed_queries = @failed_queries + 1
       end
-    end
+      columns = nil
+      headers = nil
+    end #sheet.each
+
     attr_hash = { :processed_at => Time.now, 
                   :matched_records => @records_matched, 
                   :failed_records => @records_failed, 
                   :updated_records => @records_updated, 
                   :failed_queries => @failed_queries }
     self.update_attributes(attr_hash)
-  end
+  end # perform
   
    #// Uses pre-defined headers array and associates each header value with its target value.
   #// Iterates between the first used and the first unused columns and grabs the header and row value.  
