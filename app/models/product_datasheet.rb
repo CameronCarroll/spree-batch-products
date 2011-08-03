@@ -16,27 +16,20 @@ end
 #// Main method for control of spreadsheet processing:
 #// Opens up a workbook and its two worksheets. The first sheet is used to define products,
 #// and the second sheet is used to define variants.
-
-
 def process
   uploaded_workbook = Spreadsheet.open self.path
+  @records_matched = 0
+  @records_updated = 0
+  @records_failed = 0
+  @failed_queries = 0
 
-product_sheet = uploaded_workbook.worksheet(0)
-product_columns = [product_sheet.dimensions[2], product_sheet.dimensions[3]]
-product_headers = product_sheet.row(0)
-perform(product_sheet)
+  product_sheet = uploaded_workbook.worksheet(0)
+  perform(product_sheet)
 
-if not uploaded_workbook.worksheet(1).nil?
-  variant_sheet = uploaded_workbook.worksheet(1)
-  variant_columns = [variant_sheet.dimensions[2], variant_sheet.dimensions[3]]
-  variant_headers = variant_sheet.row(0)
-  perform(variant_sheet)
-end
-
-@records_matched = 0
-@records_updated = 0
-@records_failed = 0
-@failed_queries = 0
+  if not uploaded_workbook.worksheet(1).nil?
+    variant_sheet = uploaded_workbook.worksheet(1)
+    perform(variant_sheet)
+  end
 end #process
   
   def perform(sheet)
