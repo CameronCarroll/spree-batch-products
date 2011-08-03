@@ -24,13 +24,13 @@ def process
 product_sheet = uploaded_workbook.worksheet(0)
 product_columns = [product_sheet.dimensions[2], product_sheet.dimensions[3]]
 product_headers = product_sheet.row(0)
-perform(product_sheet, columns, headers)
+perform(product_sheet)
 
 if not uploaded_workbook.worksheet(1).nil?
   variant_sheet = uploaded_workbook.worksheet(1)
   variant_columns = [variant_sheet.dimensions[2], variant_sheet.dimensions[3]]
   variant_headers = variant_sheet.row(0)
-  perform(variant_sheet, columns, headers)
+  perform(variant_sheet)
 end
 
 @records_matched = 0
