@@ -92,7 +92,7 @@ end #process
   #// accepts string, integer values (string for lookup, integer for direct association.)
   #// If product is found, injects its ID into attr_hash in place of name
   def create_variant(attr_hash, headers)
-    product_to_reference = Product.where(headers[1] => attr_hash[headers[1]])
+    product_to_reference = Product.find_by_name(attr_hash[headers[1]])
     if not product_to_reference.nil?
       attr_hash[headers[1]] = product_to_reference.id
     else
