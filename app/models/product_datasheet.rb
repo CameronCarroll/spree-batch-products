@@ -43,13 +43,13 @@ end #process
     #// Passing 1 into each(1) defines how many rows to skip before processing the spreadsheet.
     #// Since the first row is already defined in headers=worksheet.row(0), we start at the data.
     sheet.each(1) do |row|
-      attr_hash = {}
+
     #// A note on dimensions: values 0-3 of the return array contain the first used column, and the first
     #// unused column. See documentation at http://spreadsheet.rubyforge.org/Spreadsheet/Worksheet.html
     #// Load columns and headers for the new sheet:
       columns = [sheet.dimensions[2], sheet.dimensions[3]]
       headers = sheet.row(0)
-      load_headers(row, columns, headers)
+      attr_hash = load_headers(row, columns, headers)
 
       #// Checks first header value for a blank 'id', which signifies record creation.
       #// If record is to be created, checks for product_id column, which signifies variant creation.
@@ -81,9 +81,11 @@ end #process
    #// Uses pre-defined headers array and associates each header value with its target value.
   #// Iterates between the first used and the first unused columns and grabs the header and row value.  
   def load_headers(row, columns, headers)
+    attr_hash = {}
     for i in columns[0]..columns[1]
      attr_hash[headers[i]] = row[i] unless row[i].nil?
     end
+    return attr_hash
   end
   
   #// Simply instantiates a new product using the attribute hash formed in load_headers
