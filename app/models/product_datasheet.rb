@@ -46,9 +46,9 @@ end #process
 
       #// Checks first header value for a blank 'id', which signifies record creation.
       #// If record is to be created, checks for product_id column, which signifies variant creation.
-      
+      #// note that create_variant requires the headers, but create_product does not.
       if headers[0] == 'id' && row[0].nil? && headers[1] == 'product_id' && !row[1].nil?
-        create_variant(attr_hash)
+        create_variant(attr_hash, headers)
       elsif headers[0] == 'id' && row[0].nil?
         create_product(attr_hash)
       elsif Product.column_names.include?(headers[0])
@@ -91,7 +91,7 @@ end #process
   #// create_variant uses product_id in attr_hash:
   #// accepts string, integer values (string for lookup, integer for direct association.)
   #// If product is found, injects its ID into attr_hash in place of name
-  def create_variant(attr_hash)
+  def create_variant(attr_hash, headers)
     product_to_reference = Product.where(headers[1] => attr_hash[headers[1]])
     if not product_to_reference.nil?
       attr_hash[headers[1]] = product_to_reference.id
