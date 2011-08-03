@@ -44,7 +44,7 @@ end #process
 
     #// Passing 1 into each(1) defines how many rows to skip before processing the spreadsheet.
     #// Since the first row is already defined in headers=worksheet.row(0), we start at the data.
-    worksheet.each(1) do |row|
+    sheet.each(1) do |row|
       attr_hash = {}
       load_headers(row)
 
