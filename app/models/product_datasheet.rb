@@ -99,7 +99,7 @@ end #process
       #Fail miserably :/
     end
     new_variant = Variant.new(attr_hash)
-    @failed_queries = @failed_queries + 1 if not new_product.save
+    @failed_queries = @failed_queries + 1 if not new_variant.save
   end
   
   def process_products(key, value, attr_hash)
