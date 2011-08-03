@@ -94,7 +94,7 @@ end #process
   def create_variant(attr_hash, headers)
     product_to_reference = Product.find_by_name(attr_hash[headers[1]])
     if not product_to_reference.nil?
-      attr_hash[headers[1]] = product_to_reference.id
+      attr_hash[headers[1]] = product_to_reference[:id]
     else
       #Fail miserably :/
     end
