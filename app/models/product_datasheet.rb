@@ -92,7 +92,7 @@ end #process
     header_hash = {}
     for i in columns[0]..columns[1]
       exclusion_list.each do |e|
-        if row[i] == /#{e}/i
+        if row[i] == e
           exception_hash << {e => row[i]}
         else
           attr_hash[headers[i]] = row[i] unless row[i].nil?
@@ -163,9 +163,9 @@ end #process
   def create_variant(attr_hash, headers)
     #// attr_hash inspection to check for invalid fields
     attr_hash.each do |key, v|
-      if key =~ /Option_Types/i
+      if key == 'option_types'
         attr_hash.delete key
-      elsif key =~ /Option Types/i
+      elsif key =~ /Option_Types/i
         attr_hash.delete key
       else
         #attr_hash is okay
