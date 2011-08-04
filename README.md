@@ -66,9 +66,10 @@ Record Creation: Option Types & Option Values
 
 Options are added to their respesctive record type, but are defined together on the Variant sheet. After creating the product and its variant, the program proceeds to handle exceptions, including option types. Option types themselves are pulled out of a product's exception_hash and associated to the variant's parent product.
 
-There are a couple syntactic elements to keep in mind for definining option types: The regular expressions used are "option_type_regex = /\w*:/" & "option_value_regex = /(\w*,)|(\w*;)/" respectively. I suggest your test your query out in something like [rubular](http://rubular.com/) or any given alternative to be sure that what you have will be matched. (Or if you're a regex wizard, you could make the query more robust...)
+There are a couple syntactic elements to keep in mind for definining option types: The regular expressions used are "option_type_regex = /\w*:/" & "option_value_regex = /(\w*,)|(\w*;)/" respectively. I suggest your test your data out in something like [rubular](http://rubular.com/) or any given alternative to be sure that what you have will be matched. (Or if you're a regex wizard, you could make the query more robust...)
 The above expressions are designed to parse a string as such: "Color:blue,red,green; Size:small,large;" --- Option_type_regex will yield "Color: and Size:" before being fed into chomp(1) to remove the colon. Option_value_regex will yield each option (red, blue, green; small, large;) in an array, and then uses chomp(1) to remove the end character. Your option values will not be picked up unless they are terminated with either a comma or semicolon. Your option types will not be picked up unless they are terminated with a colon. Finally, separate option type/value trees with a space.
 
+Notice: I couldn't manage to get the program to scan the entire sheet for option_types column and remove it. 
 
 Record Updating
 ---------------
@@ -76,3 +77,5 @@ Record Updating
 Updating collections of records follows similarly from the example.  Updating Product collections requires a search attribute that is present as an attribute column on the Products table in the database; the same is true for Variant collections.  Attributes with empty value cells are not included in the attributes hash to update the record.
 
 Copyright (c) 2011 minustehbare, released under the New BSD License
+
+Contributions by Sanarothe, referencing [spree-import-products](https://github.com/joshmcarthur/spree-import-products/) and [ar-loader](https://github.com/autotelik/AR-Loader) -- If I couldn't figure out how to do something, I probably looked at how you did it. <3

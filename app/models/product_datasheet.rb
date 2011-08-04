@@ -41,11 +41,13 @@ end #process
     #// unused column. See documentation at http://spreadsheet.rubyforge.org/Spreadsheet/Worksheet.html
     #// Load columns and headers for the new sheet:
       columns = [sheet.dimensions[2], sheet.dimensions[3]]
-      headers = sheet.row(0)
-      header_hash = load_headers(row, columns, headers)
-      attr_hash = header_hash["attr_hash"]
-      exception_hash = header_hash["exception_hash"]
-
+      #// The raw headers contain exceptions, which are removed by hooks in load_headers method.
+      raw_headers = sheet.row(0)
+      header_return_hash = load_headers(row, columns, raw_headers)
+      attr_hash = header_return_hash["attr_hash"]
+      exception_hash = header_return_hash["exception_hash"]
+      headers = attr_hash[headers]
+      
       #// Checks first header value for a blank 'id', which signifies record creation.
       #// If record is to be created, checks for product_id column, which signifies variant creation.
       #// note that create_variant requires the headers, but create_product does not.
@@ -80,7 +82,6 @@ end #process
   #// Exclusion hash is used to define columns that need to be processed separately. In order to define
   #// an exception, you need to hook it here to prevent it from being added to attr_hash, and also add
   #// a handler in the handle_exception method.
-  #//
   def load_headers(row, columns, headers)
   #// HEADER EXCLUSION LIST:
   #// ----------------------
@@ -161,16 +162,6 @@ end #process
   #// accepts string, integer values (string for lookup, integer for direct association.)
   #// If product is found, injects its ID into attr_hash in place of name
   def create_variant(attr_hash, headers)
-    #// attr_hash inspection to check for invalid fields
-    attr_hash.each do |key, v|
-      if key == 'option_types'
-        attr_hash.delete key
-      elsif key =~ /Option_Types/i
-        attr_hash.delete key
-      else
-        #attr_hash is okay
-      end
-    end
     product_to_reference = Product.find_by_name_or_id(attr_hash[headers[1]])
     if not product_to_reference.nil?
       attr_hash[headers[1]] = product_to_reference[:id]
