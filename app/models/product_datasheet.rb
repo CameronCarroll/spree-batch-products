@@ -92,7 +92,7 @@ end #process
     header_hash = {}
     for i in columns[0]..columns[1]
       exclusion_list.each do |e|
-        if row[i] =~ /#{e}/
+        if row[i] =~ /#{e}/i
           exception_hash << {e => row[i]}
         else
           attr_hash[headers[i]] = row[i] unless row[i].nil?
@@ -161,6 +161,16 @@ end #process
   #// accepts string, integer values (string for lookup, integer for direct association.)
   #// If product is found, injects its ID into attr_hash in place of name
   def create_variant(attr_hash, headers)
+    #// attr_hash inspection to check for invalid fields
+    attr_hash.each do |k, v|
+      if key =~ /Option_Types/i
+        attr_hash.delete key
+      elsif key =~ /Option Types/i
+        attr_hash.delete key
+      else
+        #attr_hash is okay
+      end
+    end
     product_to_reference = Product.find_by_name_or_id(attr_hash[headers[1]])
     if not product_to_reference.nil?
       attr_hash[headers[1]] = product_to_reference[:id]
