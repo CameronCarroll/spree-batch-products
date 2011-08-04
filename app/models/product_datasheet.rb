@@ -162,7 +162,7 @@ end #process
   #// If product is found, injects its ID into attr_hash in place of name
   def create_variant(attr_hash, headers)
     #// attr_hash inspection to check for invalid fields
-    attr_hash.each do |k, v|
+    attr_hash.each do |key, v|
       if key =~ /Option_Types/i
         attr_hash.delete key
       elsif key =~ /Option Types/i
