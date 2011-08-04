@@ -42,19 +42,23 @@ end #process
     #// Load columns and headers for the new sheet:
       columns = [sheet.dimensions[2], sheet.dimensions[3]]
       headers = sheet.row(0)
-      attr_hash = load_headers(row, columns, headers)
+      header_hash = load_headers(row, columns, headers)
+      attr_hash = header_hash["attr_hash"]
+      exception_hash = header_hash["exception_hash"]
 
       #// Checks first header value for a blank 'id', which signifies record creation.
       #// If record is to be created, checks for product_id column, which signifies variant creation.
       #// note that create_variant requires the headers, but create_product does not.
       if headers[0] == 'id' && row[0].nil? && headers[1] == 'product_id' && !row[1].nil?
+        exception_package = [exception_hash, attr_hash]
         create_variant(attr_hash, headers)
+        handle_exceptions(exception_package)
       elsif headers[0] == 'id' && row[0].nil?
         create_product(attr_hash)
       elsif Product.column_names.include?(headers[0])
         process_products(headers[0], row[0], attr_hash)
       elsif Variant.column_names.include?(headers[0])
-        process_variants(headers[0], row[0], attr_hash)
+        process_variants(headers[0], row[0], attr_hash) 
       else
         #TODO do something when the batch update for the row in question is invalid
         @failed_queries = @failed_queries + 1
@@ -72,15 +76,80 @@ end #process
   end # perform
   
    #// Uses pre-defined headers array and associates each header value with its target value.
-  #// Iterates between the first used and the first unused columns and grabs the header and row value.  
+  #// Iterates between the first used and the first unused columns and grabs the header and row value. 
+  #// Exclusion hash is used to define columns that need to be processed separately. In order to define
+  #// an exception, you need to hook it here to prevent it from being added to attr_hash, and also add
+  #// a handler in the handle_exception method.
+  #//
   def load_headers(row, columns, headers)
+  #// HEADER EXCLUSION LIST:
+  #// ----------------------
+      exclusion_list = [
+        'Option_Types'
+      ]
     attr_hash = {}
+    exception_hash = {}
+    header_hash = {}
     for i in columns[0]..columns[1]
-     attr_hash[headers[i]] = row[i] unless row[i].nil?
+      exclusion_list.each do |e|
+        if row[i] =~ /#{e}/
+          exception_hash << {e => row[i]}
+        else
+          attr_hash[headers[i]] = row[i] unless row[i].nil?
+        end
+      end
+     
     end
-    return attr_hash
+    header_hash << attr_hash
+    header_hash << exception_hash
+    return header_hash
   end
   
+  #// Accepts a hash of exception keys pointed to their row data.
+  #// Passes the processing of each exception type off to its respective handler.
+  #// Exception package consists of exception_hash THEN attr_hash
+  def handle_exceptions(exception_package)
+    exception_package[0].each do |exception_key, exception_value|
+      
+      case exception_key
+        
+        #// Handle option types, which are only defined within variants. Uses the exception data to add option_types to the parent product 
+        #// and then adds option_values to the variant.
+      when 'Option_Types'
+        
+        #// Gather all objects (Product, variant, option_types and option_values, regexes)
+        sku_to_query = exception_package[1['sku']]
+        our_variant = Variant.find_by_sku(sku_to_query)
+        
+        parent_to_query = exception_package[1['product_id']]
+        parent_product = Product.find_by_id(parent_to_query)
+        
+        individual_trees_regex = /\s/
+        option_type_regex = /\w*:/
+        option_value_regex = /(\w*,)|(\w*;)/
+        
+        #// Breaks the exception_value into individual option type/value trees for simplification of processing.
+        option_trees = exception_value.split(individual_trees_regex)
+        option_trees.each do |tree|
+          
+          option_types = tree.scan(option_type_regex).chomp(1)    
+          #// Suggested code from spree/migrations documentation for adding option_types to product.
+          parent_product.option_types = option_types.map do |type|
+            parent_option = OptionType.find_or_create_by_name_and_presentation(type, type.capitalize)
+          end
+          
+          option_values = tree.scan(option_value_regex).chomp(1)
+          our_variant.option_values = option_values.map do |value|
+            OptionValue.find_or_create_by_name_and_presentation_and_option_type_id(value, value.capitalize, parent_option.id)
+          end
+        end
+    
+      else
+        #Exception not found
+        @failed_queries = @failed_queries + 1
+      end
+    end
+  end
   #// Simply instantiates a new product using the attribute hash formed in load_headers
   def create_product(attr_hash)
     new_product = Product.new(attr_hash)
@@ -92,7 +161,9 @@ end #process
   #// accepts string, integer values (string for lookup, integer for direct association.)
   #// If product is found, injects its ID into attr_hash in place of name
   def create_variant(attr_hash, headers)
-    product_to_reference = Product.find_by_name(attr_hash[headers[1]])
+    product_to_reference = Product.find_by_name_or_id(attr_hash[headers[1]])
+    
+    attr_hash["option_values"]
     if not product_to_reference.nil?
       attr_hash[headers[1]] = product_to_reference[:id]
     else
