@@ -92,7 +92,7 @@ end #process
     header_hash = {}
     for i in columns[0]..columns[1]
       exclusion_list.each do |e|
-        if row[i] =~ /#{e}/i
+        if row[i] == /#{e}/i
           exception_hash << {e => row[i]}
         else
           attr_hash[headers[i]] = row[i] unless row[i].nil?
