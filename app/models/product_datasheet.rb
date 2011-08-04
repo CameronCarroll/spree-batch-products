@@ -162,8 +162,6 @@ end #process
   #// If product is found, injects its ID into attr_hash in place of name
   def create_variant(attr_hash, headers)
     product_to_reference = Product.find_by_name_or_id(attr_hash[headers[1]])
-    
-    attr_hash["option_values"]
     if not product_to_reference.nil?
       attr_hash[headers[1]] = product_to_reference[:id]
     else
