@@ -52,9 +52,7 @@ end #process
       #// If record is to be created, checks for product_id column, which signifies variant creation.
       #// note that create_variant requires the headers, but create_product does not.
       if headers[0] == 'id' && row[0].nil? && headers[1] == 'product_id' && !row[1].nil?
-        exception_package = [exception_hash, attr_hash]
-        create_variant(attr_hash, headers)
-        handle_exceptions(exception_package)
+        create_variant(attr_hash, headers, exception_hash)
       elsif headers[0] == 'id' && row[0].nil?
         create_product(attr_hash)
       elsif Product.column_names.include?(headers[0])
@@ -109,48 +107,51 @@ end #process
   #// Accepts a hash of exception keys pointed to their row data.
   #// Passes the processing of each exception type off to its respective handler.
   #// Exception package consists of exception_hash THEN attr_hash
-  def handle_exceptions(exception_package)
-    exception_package[0].each do |exception_key, exception_value|
+  def handle_exceptions(exception_hash, attr_hash)
+    exception_hash.each do |exception_key, exception_value|
       
       case exception_key
         
         #// Handle option types, which are only defined within variants. Uses the exception data to add option_types to the parent product 
         #// and then adds option_values to the variant.
+        #// exception_package[0] is the exception_hash, which should contain currently only 'Option_Types'
+        #// exception_package[1] is the attr_hash, which has the variant row data. 
       when 'Option_Types'
-        
-        #// Gather all objects (Product, variant, option_types and option_values, regexes)
-        sku_to_query = exception_package[1['sku']]
-        our_variant = Variant.find_by_sku(sku_to_query)
-        
-        parent_to_query = exception_package[1['product_id']]
-        parent_product = Product.find_by_id(parent_to_query)
-        
         individual_trees_regex = /\s/
         option_type_regex = /\w*:/
         option_value_regex = /(\w*,)|(\w*;)/
+        #// Variant should have a parent defined already, so just find it.
+        #// It also should have had the ID injected rather than name.
+        #// Handle products and option_types:
+        parent_to_query = attr_hash['product_id']
+        parent_product = Product.find_by_id(parent_to_query)
         
         #// Breaks the exception_value into individual option type/value trees for simplification of processing.
         option_trees = exception_value.split(individual_trees_regex)
         option_trees.each do |tree|
-          
           option_types = tree.scan(option_type_regex).chomp(1)    
           #// Suggested code from spree/migrations documentation for adding option_types to product.
           parent_product.option_types = option_types.map do |type|
             parent_option = OptionType.find_or_create_by_name_and_presentation(type, type.capitalize)
           end
           
+        #// Handle variants and option_values:
+        parent_product.option_types.each do |option|
+        sku_to_query = attr_hash['sku']
+        our_variant = Variant.find_or_create_by_sku(sku_to_query, attr_hash)
           option_values = tree.scan(option_value_regex).chomp(1)
           our_variant.option_values = option_values.map do |value|
-            OptionValue.find_or_create_by_name_and_presentation_and_option_type_id(value, value.capitalize, parent_option.id)
+            OptionValue.find_or_create_by_name_and_presentation_and_option_type_id(value, value.capitalize, option.id)
           end
         end
-    
+      end
       else
         #Exception not found
         @failed_queries = @failed_queries + 1
       end
     end
   end
+  
   #// Simply instantiates a new product using the attribute hash formed in load_headers
   def create_product(attr_hash)
     new_product = Product.new(attr_hash)
@@ -161,17 +162,21 @@ end #process
   #// create_variant uses product_id in attr_hash:
   #// accepts string, integer values (string for lookup, integer for direct association.)
   #// If product is found, injects its ID into attr_hash in place of name
+  #// Notice 
   def create_variant(attr_hash, headers)
     product_to_reference = Product.find_by_name_or_id(attr_hash[headers[1]])
     if not product_to_reference.nil?
       attr_hash[headers[1]] = product_to_reference[:id]
     else
-      #Fail miserably :/
+      @failed_queries = @failed_queries +1
+      return
     end
-    new_variant = Variant.new(attr_hash)
+    handle_exceptions(exception_hash, attr_hash)
+    new_variant = Variant.find_or_create_by_sku(attr_hash['sku'], attr_hash)
     @failed_queries = @failed_queries + 1 if not new_variant.save
   end
   
+  #//
   def process_products(key, value, attr_hash)
     products_to_update = Product.where(key => value).all
     @records_matched = @records_matched + products_to_update.size
@@ -184,6 +189,7 @@ end #process
     @failed_queries = @failed_queries + 1 if products_to_update.size == 0
   end
   
+  #//
   def process_variants(key, value, attr_hash)
     variants_to_update = Variant.where(key => value).all
     @records_matched = @records_matched + variants_to_update.size
