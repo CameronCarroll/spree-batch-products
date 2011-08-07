@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.name        = 'spree_batch_products'
-  s.version     = '0.50.1'
+  s.version     = '0.50.2'
   s.summary     = 'Updating collections of Variants/Products through use of an excel format spreadsheet'
   s.description = 'Add (optional) gem description here'
   s.required_ruby_version = '>= 1.8.7'
