@@ -183,7 +183,10 @@ end #process
       return
     end
     handle_exceptions(exception_hash, attr_hash)
-    new_variant = Variant.find_or_create_by_sku(attr_hash['sku'], attr_hash)
+    new_variant = Variant.find_by_sku(attr_hash['sku'])
+    if new_variant.nil?
+      new_variant = Variant.new(attr_hash)
+    end
     @failed_queries = @failed_queries + 1 if not new_variant.save
   end #create_variant
   
