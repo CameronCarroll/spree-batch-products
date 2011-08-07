@@ -41,12 +41,16 @@ end #process
     #// unused column. See documentation at http://spreadsheet.rubyforge.org/Spreadsheet/Worksheet.html
     #// Load columns and headers for the new sheet:
       columns = [sheet.dimensions[2], sheet.dimensions[3]]
-      #// The raw headers contain exceptions, which are removed by hooks in load_headers method.
+      #// Captures the first row of the sheet, which contains the headers (model attributes)
+      #// These headers are mostly used in the product/variant creation/update call, but there are some
+      #// exceptions: option types, taxonomies and (possibly) 'ad-hoc option types'
+      #// These exceptions are filtered in load_data and added to the exception list.
       raw_headers = sheet.row(0)
-      header_return_array = load_headers(row, columns, raw_headers)
+      #// header_return_array: 0 contains attr_hash, 1 contains exception_hash, 2 contains the filtered headers.
+      header_return_array = load_data(row, columns, raw_headers)
       attr_hash = header_return_array[0]
       exception_hash = header_return_array[1]
-      headers = attr_hash[headers]
+      headers = header_return_array[2]
       
       #// Checks first header value for a blank 'id', which signifies record creation.
       #// If record is to be created, checks for product_id column, which signifies variant creation.
@@ -80,7 +84,7 @@ end #process
   #// Exclusion hash is used to define columns that need to be processed separately. In order to define
   #// an exception, you need to hook it here to prevent it from being added to attr_hash, and also add
   #// a handler in the handle_exception method.
-  def load_headers(row, columns, headers)
+  def load_data(row, columns, headers)
   #// HEADER EXCLUSION LIST:
   #// ----------------------
       exclusion_list = [
@@ -88,21 +92,25 @@ end #process
       ]
     attr_hash = {}
     exception_hash = {}
+    sanitized_headers_array = []
     header_return_array = []
+    
     for i in columns[0]..columns[1]
-      exclusion_list.each do |e|
-        if row[i] == e
-          exception_hash[e] = row[i]
+      exclusion_list.each do |exclusion|
+        if row[i] == exclusion
+          exception_hash[exclusion] = row[i]
         else
           attr_hash[headers[i]] = row[i] unless row[i].nil?
+          sanitized_headers_array << headers[i]
         end
       end
      
     end
     header_return_array[0] = attr_hash
     header_return_array[1] = exception_hash
+    header_return_array[2] = sanitized_headers_array
     return header_return_array
-  end
+  end #load_data
   
   #// Accepts a hash of exception keys pointed to their row data.
   #// Passes the processing of each exception type off to its respective handler.
@@ -150,7 +158,7 @@ end #process
         @failed_queries = @failed_queries + 1
       end
     end
-  end
+  end #handle_exceptions
   
   #// Simply instantiates a new product using the attribute hash formed in load_headers
   def create_product(attr_hash)
@@ -174,7 +182,7 @@ end #process
     handle_exceptions(exception_hash, attr_hash)
     new_variant = Variant.find_or_create_by_sku(attr_hash['sku'], attr_hash)
     @failed_queries = @failed_queries + 1 if not new_variant.save
-  end
+  end #create_variant
   
   #//
   def process_products(key, value, attr_hash)
@@ -187,7 +195,7 @@ end #process
             @records_failed = @records_failed + 1
          end }
     @failed_queries = @failed_queries + 1 if products_to_update.size == 0
-  end
+  end #process_products
   
   #//
   def process_variants(key, value, attr_hash)
@@ -200,7 +208,7 @@ end #process
            @records_failed = @records_failed + 1
         end }
     @failed_queries = @failed_queries + 1 if variants_to_update.size == 0
-  end
+  end #process_variants
   
   def processed?
     !self.processed_at.nil?
