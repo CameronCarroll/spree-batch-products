@@ -99,8 +99,8 @@ end #process
       end
      
     end
-    header_return_array << attr_hash
-    header_return_array << exception_hash
+    header_return_array[0] = attr_hash
+    header_return_array[1] = exception_hash
     return header_return_array
   end
   
