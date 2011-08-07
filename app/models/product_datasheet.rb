@@ -43,9 +43,9 @@ end #process
       columns = [sheet.dimensions[2], sheet.dimensions[3]]
       #// The raw headers contain exceptions, which are removed by hooks in load_headers method.
       raw_headers = sheet.row(0)
-      header_return_hash = load_headers(row, columns, raw_headers)
-      attr_hash = header_return_hash["attr_hash"]
-      exception_hash = header_return_hash["exception_hash"]
+      header_return_array = load_headers(row, columns, raw_headers)
+      attr_hash = header_return_array[0]
+      exception_hash = header_return_array[1]
       headers = attr_hash[headers]
       
       #// Checks first header value for a blank 'id', which signifies record creation.
@@ -88,7 +88,7 @@ end #process
       ]
     attr_hash = {}
     exception_hash = {}
-    header_hash = {}
+    header_return_array = {}
     for i in columns[0]..columns[1]
       exclusion_list.each do |e|
         if row[i] == e
@@ -99,9 +99,9 @@ end #process
       end
      
     end
-    header_hash << attr_hash
-    header_hash << exception_hash
-    return header_hash
+    header_return_array << attr_hash
+    header_return_array << exception_hash
+    return header_return_array
   end
   
   #// Accepts a hash of exception keys pointed to their row data.
