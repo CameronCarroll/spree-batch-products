@@ -55,8 +55,15 @@ end #process
       #// Checks first header value for a blank 'id', which signifies record creation.
       #// If record is to be created, checks for product_id column, which signifies variant creation.
       #// note that create_variant requires the headers, but create_product does not.
-      if headers[0] == 'id' && row[0].nil? && headers[1] == 'product_id' && !row[1].nil?
+      
+      #// Checks for blank ID, non-blank product_id and a blank option_types.
+      #// This is for creating variants if the product already has option types associated with it.
+      if headers[0] == 'id' && row[0].nil? && headers[1] == 'product_id' && !row[1].nil? && row[2].nil?
         create_variant(attr_hash, headers, exception_hash)
+      #// Checks for variant creation, and also the third column should be 'option_types' to handle removal
+      elsif headers[0] == 'id' && row[0].nil? && headers[1] == 'product_id' && !row[1].nil? && headers[2] == 'option_types' && !row[2].nil?
+        remove_illegal_headers(attr_hash, )
+      #// Create products as normal
       elsif headers[0] == 'id' && row[0].nil?
         create_product(attr_hash)
       elsif Product.column_names.include?(headers[0])
@@ -97,7 +104,9 @@ end #process
     
     for i in columns[0]..columns[1]
       exclusion_list.each do |exclusion|
-        if row[i] =~ /#{exclusion}/
+        if headers[i] =~ /#{exclusion}/
+          exception_hash[exclusion] = row[i]
+        elsif headers[i] == exclusion
           exception_hash[exclusion] = row[i]
         else
           attr_hash[headers[i]] = row[i] unless row[i].nil?

@@ -69,7 +69,7 @@ Options are added to their respesctive record type, but are defined together on 
 There are a couple syntactic elements to keep in mind for definining option types: The regular expressions used are "option_type_regex = /\w*:/" & "option_value_regex = /(\w*,)|(\w*;)/" respectively. I suggest your test your data out in something like [rubular](http://rubular.com/) or any given alternative to be sure that what you have will be matched. (Or if you're a regex wizard, you could make the query more robust...)
 The above expressions are designed to parse a string as such: "Color:blue,red,green; Size:small,large;" --- Option_type_regex will yield "Color: and Size:" before being fed into chomp(1) to remove the colon. Option_value_regex will yield each option (red, blue, green; small, large;) in an array, and then uses chomp(1) to remove the end character. Your option values will not be picked up unless they are terminated with either a comma or semicolon. Your option types will not be picked up unless they are terminated with a colon. Finally, separate option type/value trees with a space.
 
-Notice: I couldn't manage to get the program to scan the entire sheet for option_types column and remove it. 
+Notice: I couldn't manage to get the program to scan the entire sheet for option_type and remove it from the hash correctly. Therefore, your option type definition must be in the third column! Blank ID in first column designates record creation, product id in second column designates variant creation. Option values depend on variants, so they will always be in third column. Sorry for this inconvenience... don't have the time to sort out a proper search and removal.
 
 Record Updating
 ---------------
