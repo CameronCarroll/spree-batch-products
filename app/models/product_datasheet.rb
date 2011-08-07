@@ -97,7 +97,7 @@ end #process
     
     for i in columns[0]..columns[1]
       exclusion_list.each do |exclusion|
-        if row[i] == exclusion
+        if row[i] =~ /#{exclusion}/
           exception_hash[exclusion] = row[i]
         else
           attr_hash[headers[i]] = row[i] unless row[i].nil?
