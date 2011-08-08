@@ -138,11 +138,9 @@ end #process
         parent_to_query = attr_hash['product_id']
         parent_product = Product.find_by_id(parent_to_query)
         
-        #// if the variant exists already, create it. 
+        #// if the variant exists already, find it by sku
         variant_to_query = attr_hash['sku']
-        variant = Product.find_by_sku(variant_to_query)
-        
-        
+        variant = Variant.find_by_sku(variant_to_query)
         
         #// Breaks the exception_value into individual option type/value trees for simplification of processing.
         #// Creates one option_type and a number of option_values for the product and variant respectively.
