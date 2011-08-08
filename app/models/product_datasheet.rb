@@ -156,26 +156,29 @@ end #process
           
         #// Handle variants and option_values:
         parent_product.option_types.each do |option|
-        sku_to_query = attr_hash['sku']
-        our_variant = Variant.find_or_create_by_sku(sku_to_query, attr_hash)
-        option_values = tree.scan(option_value_regex)
-        option_values.each do |value|
-          if !value[0].nil?
-           value[0].gsub!(':', '')
-           value[0].gsub!(';', '')
-           value[0].gsub!(',', '')
-          elsif !value[1].nil?
-           value[1].gsub!(':', '')
-           value[1].gsub!(';', '')
-           value[1].gsub!(',', '') 
-          else
-            @failed_queries += 1
-          end
-        end
-          our_variant.option_values = option_values.map do |value|
-            OptionValue.find_or_create_by_name_and_presentation_and_option_type_id(value, value.capitalize, option.id)
-          end
-        end
+          sku_to_query = attr_hash['sku']
+         our_variant = Variant.find_or_create_by_sku(sku_to_query, attr_hash)
+         option_values = tree.scan(option_value_regex)
+          option_values.each do |value|
+           if !value[0].nil?
+            value[0].gsub!(':', '')
+            value[0].gsub!(';', '')
+            value[0].gsub!(',', '')
+             our_variant.option_values = option_values.map do |value|
+               OptionValue.find_or_create_by_name_and_presentation_and_option_type_id(value[0], value[0].capitalize, option.id)
+             end
+            elsif !value[1].nil?
+             value[1].gsub!(':', '')
+             value[1].gsub!(';', '')
+             value[1].gsub!(',', '') 
+             our_variant.option_values = option_values.map do |value|
+               OptionValue.find_or_create_by_name_and_presentation_and_option_type_id(value[1], value[1].capitalize, option.id)
+             end
+           else
+              @failed_queries += 1
+           end
+        end #option_values.each do
+        end #option_types.each do
       end
       else
         #Exception not found
