@@ -132,60 +132,75 @@ end #process
         #// exception_package[1] is the attr_hash, which has the variant row data. 
       when 'Option_Types'
         individual_trees_regex = /\s/
-        option_type_regex = /\w*:/
-        option_value_regex = /(\w*,)|(\w*;)/
         #// Variant should have a parent defined already, so just find it.
         #// It also should have had the ID injected rather than name.
         #// Handle products and option_types:
         parent_to_query = attr_hash['product_id']
         parent_product = Product.find_by_id(parent_to_query)
         
+        #// if the variant exists already, create it. 
+        variant_to_query = attr_hash['sku']
+        variant = Product.find_by_sku(variant_to_query)
+        
+        
+        
         #// Breaks the exception_value into individual option type/value trees for simplification of processing.
+        #// Creates one option_type and a number of option_values for the product and variant respectively.
         option_trees = exception_value.split(individual_trees_regex)
         option_trees.each do |tree|
-          option_types = tree.scan(option_type_regex)
-          option_types.each do |type|
-            type[0].gsub!(':', '')
-            type[0].gsub!(';', '')
-            type[0].gsub!(',', '')
-          end
-          #// Suggested code from spree/migrations documentation for adding option_types to product.
-          parent_product.option_types = option_types.map do |type|
+
+          option_return_array = parse_options(tree)
+          option_type = option_return_array[0]
+          option_values = option_return_array[1]
+          
+          #// Initialize parent product's option type.
+          parent_product.option_types = option_type.map do |type|
             parent_option = OptionType.find_or_create_by_name_and_presentation(type, type.capitalize)
           end
           
-        #// Handle variants and option_values:
-        parent_product.option_types.each do |option|
-          sku_to_query = attr_hash['sku']
-         our_variant = Variant.find_or_create_by_sku(sku_to_query, attr_hash)
-         option_values = tree.scan(option_value_regex)
-          option_values.each do |value|
-           if !value[0].nil?
-            value[0].gsub!(':', '')
-            value[0].gsub!(';', '')
-            value[0].gsub!(',', '')
-             our_variant.option_values = option_values.map do |value|
-               OptionValue.find_or_create_by_name_and_presentation_and_option_type_id(value[0], value[0].capitalize, option.id)
-             end
-            elsif !value[1].nil?
-             value[1].gsub!(':', '')
-             value[1].gsub!(';', '')
-             value[1].gsub!(',', '') 
-             our_variant.option_values = option_values.map do |value|
-               OptionValue.find_or_create_by_name_and_presentation_and_option_type_id(value[1], value[1].capitalize, option.id)
-             end
-           else
-              @failed_queries += 1
-           end
-        end #option_values.each do
-        end #option_types.each do
-      end
+          #// If the variant doesn't already exist, create it now that the parent product has option types.
+          if variant.nil?
+            new_variant = Variant.new(attr_hash)
+            @failed_queries += 1 if not new_variant.save
+          end
+            
+        end #option_trees
+      
       else
         #Exception not found
         @failed_queries += 1
       end
     end
   end #handle_exceptions
+  
+  #// Accepts a string of option_types and option_values in the form: "Color:red,blue,green;"
+  #// Reduces this string to the parent option_type ("Color:") and child option_values ("red,blue,green;")
+  def parse_options(option_string)
+    option_type_regex = /\w*:/
+    option_value_regex = /(\w*,)|(\w*;)/
+    option_return_array = []
+    #// Find the option_type and strip the colon out.
+    option_type = option_string.scan(option_type_regex)
+    option_type.gsub!(':', '')
+    
+    option_values = option_string.scan(option_value_regex)
+    option_values.each do |value|
+      case value
+      when !value[0].nil?
+        value[0].gsub!(';', '')
+        value[0].gsub!(',', '')
+      when !value[1].nil?
+        value[1].gsub!(';', '')
+        value[1].gsub!(',', '')        
+      else
+        @failed_queries += 1
+      end
+    end
+    
+    option_return_array << option_type
+    option_return_array << option_values
+    return option_return_array
+  end
   
   #// Simply instantiates a new product using the attribute hash formed in load_headers
   def create_product(attr_hash)
@@ -197,11 +212,11 @@ end #process
   #// create_variant uses product_id in attr_hash:
   #// accepts string, integer values (string for lookup, integer for direct association.)
   #// If product is found, injects its ID into attr_hash in place of name
-  #// Notice 
+  #// Note: handle_exceptions: 'option_types' creates the variant by itself.
   def create_variant(attr_hash, headers, exception_hash)
     product_to_reference = Product.find_by_name(attr_hash[headers[1]])
     if product_to_reference.nil?
-      product_to_refernce = Product.find_by_id(attr_hash[headers[1]])
+      product_to_reference = Product.find_by_id(attr_hash[headers[1]])
     end
     if not product_to_reference.nil?
       attr_hash[headers[1]] = product_to_reference[:id]
@@ -213,8 +228,8 @@ end #process
     new_variant = Variant.find_by_sku(attr_hash['sku'])
     if new_variant.nil?
       new_variant = Variant.new(attr_hash)
+      @failed_queries += 1 if not new_variant.save
     end
-    @failed_queries += 1 if not new_variant.save
   end #create_variant
   
   #//
