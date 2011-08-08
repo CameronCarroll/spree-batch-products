@@ -155,8 +155,9 @@ end #process
           option_values = option_return_array[1]
           
           #// Initialize parent product's option type.
+          #// Yeah, I'm getting lazy. That parent_option shouldnt be global, but it is.
           parent_product.option_types = option_type.map do |type|
-            parent_option = OptionType.find_or_create_by_name_and_presentation(type, type.capitalize)
+            @parent_option = OptionType.find_or_create_by_name_and_presentation(type, type.capitalize)
           end
           
           #// If the variant doesn't already exist, create it now that the parent product has option types.
