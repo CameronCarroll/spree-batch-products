@@ -139,8 +139,11 @@ end #process
         parent_product = Product.find_by_id(parent_to_query)
         
         #// if the variant exists already, find it by sku
+        #// There are variant checks/creations in multiple places to handle cyclical dependencies:
+        #// Option types AND value are defined in a variant, which logically suggests that all option
+        #// processing would occur after product and variant have been created. But variants rely on option_types being defined.
         variant_to_query = attr_hash['sku']
-        variant = Variant.find_by_sku(variant_to_query)
+        our_variant = Variant.find_by_sku(variant_to_query)
         
         #// Breaks the exception_value into individual option type/value trees for simplification of processing.
         #// Creates one option_type and a number of option_values for the product and variant respectively.
@@ -157,11 +160,15 @@ end #process
           end
           
           #// If the variant doesn't already exist, create it now that the parent product has option types.
-          if variant.nil?
-            new_variant = Variant.new(attr_hash)
+          if our_variant.nil?
+            our_variant = Variant.new(attr_hash)
             @failed_queries += 1 if not new_variant.save
           end
-            
+          
+          #// Finally, associate option values with the variant.
+          our_variant.option_values = option_values.map do |value|
+            OptionValue.find_or_create_by_name_and_presentation_and_option_type_id(value, value.capitalize, parent_option.id)
+          end  
         end #option_trees
       
       else
@@ -198,7 +205,7 @@ end #process
         @failed_queries += 1
       end
     end
-    
+    #// Load return array
     option_return_array << option_type
     option_return_array << option_values
     return option_return_array
