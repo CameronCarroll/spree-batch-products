@@ -145,9 +145,9 @@ end #process
         option_trees.each do |tree|
           option_types = tree.scan(option_type_regex)
           option_types.each do |type|
-            type.gsub!(':', '')
-            type.gsub!(';', '')
-            type.gsub!(',', '')
+            type[0].gsub!(':', '')
+            type[0].gsub!(';', '')
+            type[0].gsub!(',', '')
           end
           #// Suggested code from spree/migrations documentation for adding option_types to product.
           parent_product.option_types = option_types.map do |type|
@@ -160,9 +160,9 @@ end #process
         our_variant = Variant.find_or_create_by_sku(sku_to_query, attr_hash)
         option_values = tree.scan(option_value_regex)
         option_values.each do |value|
-          value.gsub!(':', '')
-          value.gsub!(';', '')
-          value.gsub!(',', '')
+          value[0].gsub!(':', '')
+          value[0].gsub!(';', '')
+          value[0].gsub!(',', '')
         end
           our_variant.option_values = option_values.map do |value|
             OptionValue.find_or_create_by_name_and_presentation_and_option_type_id(value, value.capitalize, option.id)
