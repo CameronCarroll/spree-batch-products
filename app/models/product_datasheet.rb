@@ -160,9 +160,9 @@ end #process
         our_variant = Variant.find_or_create_by_sku(sku_to_query, attr_hash)
         option_values = tree.scan(option_value_regex)
         option_values.each do |value|
-          type.gsub!(':', '')
-          type.gsub!(';', '')
-          type.gsub!(',', '')
+          value.gsub!(':', '')
+          value.gsub!(';', '')
+          value.gsub!(',', '')
         end
           our_variant.option_values = option_values.map do |value|
             OptionValue.find_or_create_by_name_and_presentation_and_option_type_id(value, value.capitalize, option.id)
