@@ -165,9 +165,9 @@ end #process
            value[0].gsub!(';', '')
            value[0].gsub!(',', '')
           elsif !value[1].nil?
-           value[0].gsub!(':', '')
-           value[0].gsub!(';', '')
-           value[0].gsub!(',', '') 
+           value[1].gsub!(':', '')
+           value[1].gsub!(';', '')
+           value[1].gsub!(',', '') 
           else
             @failed_queries += 1
           end
