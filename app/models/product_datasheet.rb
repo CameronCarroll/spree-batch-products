@@ -145,7 +145,9 @@ end #process
         option_trees.each do |tree|
           option_types = tree.scan(option_type_regex)
           option_types.each do |type|
-            type.chomp!(1)
+            type.gsub!(':', '')
+            type.gsub!(';', '')
+            type.gsub!(',', '')
           end
           #// Suggested code from spree/migrations documentation for adding option_types to product.
           parent_product.option_types = option_types.map do |type|
