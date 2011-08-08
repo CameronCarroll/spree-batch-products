@@ -178,8 +178,12 @@ end #process
     option_value_regex = /(\w*,)|(\w*;)/
     option_return_array = []
     #// Find the option_type and strip the colon out.
+    #// Notice that option_types and option_values are stored in an array after the scan. For option_type,
+    #// because there should only be one value per tree, always access value 0.
+    #// Option values will either be in location 0 (First match) or location 1 (scond match), which gets commas and semicolons respectively.
+    
     option_type = option_string.scan(option_type_regex)
-    option_type.gsub!(':', '')
+    option_type[0].gsub!(':', '')
     
     option_values = option_string.scan(option_value_regex)
     option_values.each do |value|
