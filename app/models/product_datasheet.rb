@@ -69,7 +69,7 @@ end #process
         process_variants(headers[0], row[0], attr_hash) 
       else
         #TODO do something when the batch update for the row in question is invalid
-        @failed_queries = @failed_queries + 1
+        @failed_queries += 1
       end
       columns = nil
       headers = nil
@@ -160,9 +160,17 @@ end #process
         our_variant = Variant.find_or_create_by_sku(sku_to_query, attr_hash)
         option_values = tree.scan(option_value_regex)
         option_values.each do |value|
-          value.gsub!(':', '')
-          value.gsub!(';', '')
-          value.gsub!(',', '')
+          if !value[0].nil?
+           value[0].gsub!(':', '')
+           value[0].gsub!(';', '')
+           value[0].gsub!(',', '')
+          elsif !value[1].nil?
+           value[0].gsub!(':', '')
+           value[0].gsub!(';', '')
+           value[0].gsub!(',', '') 
+          else
+            @failed_queries += 1
+          end
         end
           our_variant.option_values = option_values.map do |value|
             OptionValue.find_or_create_by_name_and_presentation_and_option_type_id(value, value.capitalize, option.id)
@@ -171,7 +179,7 @@ end #process
       end
       else
         #Exception not found
-        @failed_queries = @failed_queries + 1
+        @failed_queries += 1
       end
     end
   end #handle_exceptions
@@ -179,7 +187,7 @@ end #process
   #// Simply instantiates a new product using the attribute hash formed in load_headers
   def create_product(attr_hash)
     new_product = Product.new(attr_hash)
-    @failed_queries = @failed_queries + 1 if not new_product.save
+    @failed_queries += 1 if not new_product.save
   end
   
   
@@ -203,7 +211,7 @@ end #process
     if new_variant.nil?
       new_variant = Variant.new(attr_hash)
     end
-    @failed_queries = @failed_queries + 1 if not new_variant.save
+    @failed_queries += 1 if not new_variant.save
   end #create_variant
   
   #//
@@ -216,7 +224,7 @@ end #process
         else
             @records_failed = @records_failed + 1
          end }
-    @failed_queries = @failed_queries + 1 if products_to_update.size == 0
+    @failed_queries += 1 if products_to_update.size == 0
   end #process_products
   
   #//
@@ -229,7 +237,7 @@ end #process
         else
            @records_failed = @records_failed + 1
         end }
-    @failed_queries = @failed_queries + 1 if variants_to_update.size == 0
+    @failed_queries += 1 if variants_to_update.size == 0
   end #process_variants
   
   def processed?
