@@ -143,7 +143,10 @@ end #process
         #// Breaks the exception_value into individual option type/value trees for simplification of processing.
         option_trees = exception_value.split(individual_trees_regex)
         option_trees.each do |tree|
-          option_types = tree.scan(option_type_regex).chomp(1)    
+          option_types = tree.scan(option_type_regex)
+          option_types.each do |type|
+            type.chomp!(1)
+          end
           #// Suggested code from spree/migrations documentation for adding option_types to product.
           parent_product.option_types = option_types.map do |type|
             parent_option = OptionType.find_or_create_by_name_and_presentation(type, type.capitalize)
