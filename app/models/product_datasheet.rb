@@ -167,7 +167,14 @@ end #process
           
           #// Finally, associate option values with the variant.
           our_variant.option_values = option_values.map do |value|
-            OptionValue.find_or_create_by_name_and_presentation_and_option_type_id(value, value.capitalize, parent_option.id)
+            if !value[0].nil?
+              OptionValue.find_or_create_by_name_and_presentation_and_option_type_id(value[0], value[0].capitalize, parent_option.id)
+            elsif !value[1].nil?
+              OptionValue.find_or_create_by_name_and_presentation_and_option_type_id(value[1], value[1].capitalize, parent_option.id)
+            else
+              #Option values are nil. This shouldn't happen.
+              @failed_queries += 1
+            end
           end  
         end #option_trees
       
