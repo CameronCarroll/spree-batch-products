@@ -53,6 +53,8 @@ Record Creation: Products
 
 To create Product records through a ProductDatasheet the first row must define `:id` as the search attribute.  Each row should have an empty value for the `:id` column otherwise Product records will be located by the value supplied.  Record creation succeeds so long as the `:name`, `:permalink`, and `:price` attributes on each row are defined.
 
+Product records must be defined on a separate sheet from your variants. I don't have time to make it perfect, allowing both definitions on the same page.
+
 Record Creation: Variants
 -------------------------
 
@@ -60,6 +62,7 @@ In order to define Variant record creation, you need to make a second spreadshee
 
 To create Variant records, the extension looks for a product_id column AFTER the blank 'id' column. For any record creation, either product or variant, you MUST have a blank 'id' column in the first cell of your row. The product_id field is used to associate a variant with its parent product. If you already know the ID of the product for a given variant, you can define it explicitly (in integer form.) If you don't know the ID already, you can also provide the product's name to search by.
 
+Note that variants are dependent upon upon type definitions within a product: Record creation will not succeed unless you, at the very least, define an option type in the Option_Types column of your sheet. An example of this would simply be Color:
 
 Record Creation: Option Types & Option Values
 ---------------------------------------------
@@ -67,9 +70,9 @@ Record Creation: Option Types & Option Values
 Options are added to their respesctive record type, but are defined together on the Variant sheet. After creating the product and its variant, the program proceeds to handle exceptions, including option types. Option types themselves are pulled out of a product's exception_hash and associated to the variant's parent product.
 
 There are a couple syntactic elements to keep in mind for definining option types: The regular expressions used are "option_type_regex = /\w*:/" & "option_value_regex = /(\w*,)|(\w*;)/" respectively. I suggest your test your data out in something like [rubular](http://rubular.com/) or any given alternative to be sure that what you have will be matched. (Or if you're a regex wizard, you could make the query more robust...)
-The above expressions are designed to parse a string as such: "Color:blue,red,green; Size:small,large;" --- Option_type_regex will yield "Color: and Size:" before being fed into chomp(1) to remove the colon. Option_value_regex will yield each option (red, blue, green; small, large;) in an array, and then uses chomp(1) to remove the end character. Your option values will not be picked up unless they are terminated with either a comma or semicolon. Your option types will not be picked up unless they are terminated with a colon. Finally, separate option type/value trees with a space.
+The above expressions are designed to parse a string as such: "Color:blue; Size:small;" --- Option_type_regex will yield "Color: and Size:" Option_value_regex will yield each option (red, blue, green; small, large;) in an array. Your option values will not be picked up unless they are terminated with either a comma or semicolon. Your option types will not be picked up unless they are terminated with a colon. Finally, separate option type/value trees with a space.
 
-Notice: I couldn't manage to get the program to scan the entire sheet for option_type and remove it from the hash correctly. Therefore, your option type definition must be in the third column! Blank ID in first column designates record creation, product id in second column designates variant creation. Option values depend on variants, so they will always be in third column. Sorry for this inconvenience... don't have the time to sort out a proper search and removal.
+Due to not really understanding variants and options, I prepared the system to use multiple option values for a single type, for a single variant. I realize that this doesn't render prettily by default, but if you so wish, you can define something like Color:blue,green,red and it'll render in the variants partial as Color: blue, Color: green, Color: red
 
 Record Updating
 ---------------

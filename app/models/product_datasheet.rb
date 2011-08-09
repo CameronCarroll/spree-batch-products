@@ -83,8 +83,6 @@ end #process
     self.update_attributes(attr_hash)
   end # perform
   
-   #// Uses pre-defined headers array and associates each header value with its target value.
-  #// Iterates between the first used and the first unused columns and grabs the header and row value. 
   #// Exclusion hash is used to define columns that need to be processed separately. In order to define
   #// an exception, you need to hook it here to prevent it from being added to attr_hash, and also add
   #// a handler in the handle_exception method.
@@ -101,7 +99,7 @@ end #process
     
     for i in columns[0]..columns[1]
       exclusion_list.each do |exclusion|
-        if headers[i] =~ /#{exclusion}/
+        if headers[i] =~ /#{exclusion}/i
           exception_hash[exclusion] = row[i]
         elsif headers[i] == exclusion
           exception_hash[exclusion] = row[i]
@@ -118,9 +116,7 @@ end #process
     return header_return_array
   end #load_data
   
-  #// Accepts a hash of exception keys pointed to their row data.
-  #// Passes the processing of each exception type off to its respective handler.
-  #// Exception package consists of exception_hash THEN attr_hash
+  #// Add exception handlers to the case statement.
   def handle_exceptions(exception_hash, attr_hash)
     exception_hash.each do |exception_key, exception_value|
       
@@ -135,16 +131,12 @@ end #process
         #// exception_package[1] is the attr_hash, which has the variant row data. 
       when 'Option_Types'
         individual_trees_regex = /\s/
-        #// Variant should have a parent defined already, so just find it.
-        #// It also should have had the ID injected rather than name.
-        #// Handle products and option_types:
+
+        #// Variant should have had the ID injected rather than name already.
         parent_to_query = attr_hash['product_id']
         parent_product = Product.find_by_id(parent_to_query)
         
         #// if the variant exists already, find it by sku
-        #// There are variant checks/creations in multiple places to handle cyclical dependencies:
-        #// Option types AND value are defined in a variant, which logically suggests that all option
-        #// processing would occur after product and variant have been created. But variants rely on option_types being defined.
         variant_to_query = attr_hash['sku']
         our_variant = Variant.find_by_sku(variant_to_query)
         
@@ -208,17 +200,17 @@ end #process
     #// Option values will either be in location 0 (First match) or location 1 (scond match), which gets commas and semicolons respectively.
     
     option_type = option_string.scan(option_type_regex)
-    option_type[0].gsub!(':', '')
+    option_type[0].gsub(':', '')
     
     option_values = option_string.scan(option_value_regex)
     option_values.each do |value|
       case value
       when !value[0].nil?
-        value[0].gsub!(';', '')
-        value[0].gsub!(',', '')
+        value[0].gsub(';', '')
+        value[0].gsub(',', '')
       when !value[1].nil?
-        value[1].gsub!(';', '')
-        value[1].gsub!(',', '')        
+        value[1].gsub(';', '')
+        value[1].gsub(',', '')        
       else
         @failed_queries += 1
       end
