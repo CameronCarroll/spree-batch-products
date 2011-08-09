@@ -166,7 +166,7 @@ end #process
           #// If the variant doesn't already exist, create it now that the parent product has option types.
           if our_variant.nil?
             our_variant = Variant.new(attr_hash)
-            @failed_queries += 1 if not new_variant.save
+            @failed_queries += 1 if not our_variant.save
           end
           
           #// Get the parent option_type in scope:
