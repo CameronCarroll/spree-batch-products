@@ -156,7 +156,7 @@ end #process
           #// Yeah, I'm getting lazy. That parent_option shouldnt be global, but it is.
           parent_product.option_types = option_type.map do |type|
             type.gsub!(':', '')
-            OptionType.find_by_name_and_presentation(type)
+            OptionType.find_by_name(type)
           end
           
           #// If the variant doesn't already exist, create it now that the parent product has option types.
@@ -173,10 +173,10 @@ end #process
           our_variant.option_values = option_values.map do |value|
             if !value[0].nil?
               value[0].gsub(':', '')
-              OptionValue.find_by_name_and_presentation_and_option_type_id(value[0])
+              OptionValue.find_by_name(value[0])
             elsif !value[1].nil?
               value[1].gsub(':', '')
-              OptionValue.find_by_name_and_presentation_and_option_type_id(value[1])
+              OptionValue.find_by_name(value[1])
             else
               #Option values are nil. This shouldn't happen.
               @failed_queries += 1
