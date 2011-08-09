@@ -150,6 +150,9 @@ end #process
         option_trees = exception_value.split(individual_trees_regex)
         option_trees.each do |tree|
 
+          #// options are returned as an array containing items, which are themselves arrays.
+          #// option_types are arrays with only one value
+          #// option_values have one of two possible values filled: The first handles commas, the latter, semicolons.
           option_return_array = parse_options(tree)
           option_type = option_return_array[0]
           option_values = option_return_array[1]
@@ -157,7 +160,7 @@ end #process
           #// Initialize parent product's option type.
           #// Yeah, I'm getting lazy. That parent_option shouldnt be global, but it is.
           parent_product.option_types = option_type.map do |type|
-            @parent_option = OptionType.find_or_create_by_name_and_presentation(type, type.capitalize)
+            OptionType.find_or_create_by_name_and_presentation(type, type.capitalize)
           end
           
           #// If the variant doesn't already exist, create it now that the parent product has option types.
@@ -166,6 +169,10 @@ end #process
             @failed_queries += 1 if not new_variant.save
           end
           
+          #// Get the parent option_type in scope:
+          #// option_type array contains items, as arrays. It sucks, but that's what we get back from scan.
+            parent_option = OptionType.find_by_name(option_type[0[0]])
+
           #// Finally, associate option values with the variant.
           our_variant.option_values = option_values.map do |value|
             if !value[0].nil?
