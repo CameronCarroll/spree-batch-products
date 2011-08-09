@@ -173,10 +173,8 @@ end #process
           our_variant.option_values = option_values.map do |value|
             if !value[0].nil?
               value[0][','] = ''
-              value[0][';'] = ''
               OptionValue.find_or_create_by_name_and_presentation_and_option_type_id(value[0], value[0].capitalize, parent_option.id)
             elsif !value[1].nil?
-              value[1][','] = ''
               value[1][';'] = ''
               OptionValue.find_or_create_by_name_and_presentation_and_option_type_id(value[1], value[1].capitalize, parent_option.id)
             else
