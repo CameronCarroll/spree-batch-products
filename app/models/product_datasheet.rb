@@ -124,8 +124,11 @@ end #process
   def handle_exceptions(exception_hash, attr_hash)
     exception_hash.each do |exception_key, exception_value|
       
+      if exception_value.nil?
+        break
+      end
+
       case exception_key
-        
         #// Handle option types, which are only defined within variants. Uses the exception data to add option_types to the parent product 
         #// and then adds option_values to the variant.
         #// exception_package[0] is the exception_hash, which should contain currently only 'Option_Types'
