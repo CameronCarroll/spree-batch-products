@@ -155,8 +155,8 @@ end #process
           #// Initialize parent product's option type.
           #// Yeah, I'm getting lazy. That parent_option shouldnt be global, but it is.
           parent_product.option_types = option_type.map do |type|
-            type.gsub!(':', '')
-            OptionType.find_by_name(type)
+            type.gsub(':', '')
+            OptionType.find_by_name_and_presentation(type, type.capitalize)
           end
           
           #// If the variant doesn't already exist, create it now that the parent product has option types.
