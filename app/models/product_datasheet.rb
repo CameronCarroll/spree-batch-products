@@ -175,7 +175,7 @@ end #process
               OptionValue.find_by_name(value)
             else
               #Option values are nil. This shouldn't happen.
-              @failed_queries += 1
+              @failed_queries += 1 
             end
           end  
         end #option_trees
