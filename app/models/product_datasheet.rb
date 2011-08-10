@@ -98,8 +98,10 @@ end #process
     header_return_array = []
     
     for i in columns[0]..columns[1]
-      exclusion_list.each do |exclusion| unless headers[i].nil?
-        if headers[i] =~ /#{exclusion}/i
+      exclusion_list.each do |exclusion|
+        if headers[i].nil?
+          break
+        elsif headers[i] =~ /#{exclusion}/i
           exception_hash[exclusion] = row[i]
         elsif headers[i] == exclusion
           exception_hash[exclusion] = row[i]
