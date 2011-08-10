@@ -134,7 +134,7 @@ end #process
 
         #// Variant should have had the ID injected rather than name already.
         parent_to_query = attr_hash['product_id']
-        parent_product = Product.find_by_id(parent_to_query)
+        parent_product = Product.find_or_create_by_id(parent_to_query)
         
         #// if the variant exists already, find it by sku
         variant_to_query = attr_hash['sku']
@@ -156,7 +156,7 @@ end #process
           #// Yeah, I'm getting lazy. That parent_option shouldnt be global, but it is.
           parent_product.option_types = option_type.map do |type|
             type.gsub!(':', '')
-            OptionType.find_by_name(type)
+            OptionType.find_or_create_by_name_and_presentation(type)
           end
           
           #// If the variant doesn't already exist, create it now that the parent product has option types.
@@ -171,12 +171,8 @@ end #process
 
           #// Finally, associate option values with the variant.
           our_variant.option_values = option_values.map do |value|
-            if !value[0].nil?
-              value[0].gsub(':', '')
-              OptionValue.find_by_name(value[0])
-            elsif !value[1].nil?
-              value[1].gsub(':', '')
-              OptionValue.find_by_name(value[1])
+            if !value.nil?
+              OptionValue.find_by_name(value)
             else
               #Option values are nil. This shouldn't happen.
               @failed_queries += 1
@@ -195,7 +191,7 @@ end #process
   #// Reduces this string to the parent option_type ("Color:") and child option_values ("red,blue,green;")
   def parse_options(option_string)
     option_type_regex = /\w*:/
-    option_value_regex = /(\w*,)|(\w*;)/
+    option_value_regex = /\w*;+/
     option_return_array = []
     #// Find the option_type and strip the colon out.
     #// Notice that option_types and option_values are stored in an array after the scan. For option_type,
@@ -207,16 +203,7 @@ end #process
     
     option_values = option_string.scan(option_value_regex)
     option_values.each do |value|
-      case value
-      when !value[0].nil?
-        value[0].gsub(';', '')
-        value[0].gsub(',', '')
-      when !value[1].nil?
-        value[1].gsub(';', '')
-        value[1].gsub(',', '')        
-      else
-        @failed_queries += 1
-      end
+       value.gsub(';', '') 
     end
     #// Load return array
     option_return_array << option_type
