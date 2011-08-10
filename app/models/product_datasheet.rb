@@ -176,9 +176,11 @@ end #process
             if !value[0].nil?
               value[0].gsub(',', '')
               OptionValue.find_by_name_and_presentation_and_option_type_id(value[0], value[0].capitalize, parent_option.id)
-            elsif !value[1].nil?
+               puts "Creating option value: #{value[0]}"
+          elsif !value[1].nil?
               value[1].gsub(';', '')
-              OptionValue.find_by_name_and_presentation_and_option_type_id(value[1], value[1].capitaliz, parent_option.id)
+              puts "Creating option value: #{value[1]}"
+              OptionValue.find_by_name_and_presentation_and_option_type_id(value[1], value[1].capitalize, parent_option.id)
             else
               #Option values are nil. This shouldn't happen.
               @failed_queries += 1
