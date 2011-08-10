@@ -103,11 +103,9 @@ end #process
           exception_hash[exclusion] = row[i]
         elsif headers[i] == exclusion
           exception_hash[exclusion] = row[i]
-        elsif
-          attr_hash[headers[i]] = row[i]
-          sanitized_headers_array << headers[i]
         else
-          @failed_queries += 1
+          attr_hash[headers[i]] = row[i]
+          sanitized_headers_array << headers[i]          
         end
       end
      
