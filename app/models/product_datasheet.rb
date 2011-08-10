@@ -100,9 +100,9 @@ end #process
     for i in columns[0]..columns[1]
       exclusion_list.each do |exclusion|
         if headers[i] =~ /#{exclusion}/i
-          exception_hash[exclusion] = row[i] unless row[i].nil?
+          exception_hash[exclusion] = row[i]
         elsif headers[i] == exclusion
-          exception_hash[exclusion] = row[i] unless row[i].nil?
+          exception_hash[exclusion] = row[i]
         elsif
           attr_hash[headers[i]] = row[i]
           sanitized_headers_array << headers[i]
