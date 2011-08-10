@@ -98,7 +98,7 @@ end #process
     header_return_array = []
     
     for i in columns[0]..columns[1]
-      exclusion_list.each do |exclusion|
+      exclusion_list.each do |exclusion| unless headers[i].nil?
         if headers[i] =~ /#{exclusion}/i
           exception_hash[exclusion] = row[i]
         elsif headers[i] == exclusion
@@ -213,11 +213,9 @@ end #process
     option_values.each do |value|
       case value
       when !value[0].nil?
-        value[0].gsub(';', '')
         value[0].gsub(',', '')
       when !value[1].nil?
-        value[1].gsub(';', '')
-        value[1].gsub(',', '')        
+        value[1].gsub(';', '')       
       else
         @failed_queries += 1
       end
