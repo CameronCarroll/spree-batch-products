@@ -103,9 +103,11 @@ end #process
           exception_hash[exclusion] = row[i] unless row[i].nil?
         elsif headers[i] == exclusion
           exception_hash[exclusion] = row[i] unless row[i].nil?
-        else
-          attr_hash[headers[i]] = row[i] unless row[i].nil?
+        elsif !row[i].nil?
+          attr_hash[headers[i]] = row[i]
           sanitized_headers_array << headers[i]
+        else
+          @failed_queries += 1
         end
       end
      
@@ -156,7 +158,7 @@ end #process
           #// Yeah, I'm getting lazy. That parent_option shouldnt be global, but it is.
           parent_product.option_types = option_type.map do |type|
             type.gsub(':', '')
-            OptionType.find_by_name_and_presentation(type, type.capitalize)
+            OptionType.find_or_create_by_name_and_presentation(type, type.capitalize)
           end
           
           #// If the variant doesn't already exist, create it now that the parent product has option types.
@@ -172,11 +174,11 @@ end #process
           #// Finally, associate option values with the variant.
           our_variant.option_values = option_values.map do |value|
             if !value[0].nil?
-              value[0].gsub(':', '')
-              OptionValue.find_by_name(value[0])
+              value[0].gsub(',', '')
+              OptionValue.find_by_name_and_presentation_and_option_type_id(value[0], value[0].capitalize, parent_option.id)
             elsif !value[1].nil?
-              value[1].gsub(':', '')
-              OptionValue.find_by_name(value[1])
+              value[1].gsub(';', '')
+              OptionValue.find_by_name_and_presentation_and_option_type_id(value[1], value[1].capitaliz, parent_option.id)
             else
               #Option values are nil. This shouldn't happen.
               @failed_queries += 1
