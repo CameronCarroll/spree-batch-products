@@ -103,7 +103,7 @@ end #process
           exception_hash[exclusion] = row[i] unless row[i].nil?
         elsif headers[i] == exclusion
           exception_hash[exclusion] = row[i] unless row[i].nil?
-        elsif !row[i].nil?
+        elsif
           attr_hash[headers[i]] = row[i]
           sanitized_headers_array << headers[i]
         else
@@ -174,11 +174,13 @@ end #process
           #// Finally, associate option values with the variant.
           our_variant.option_values = option_values.map do |value|
             if !value[0].nil?
-              value[0].gsub(',', '')
+             # value[0].gsub(',', '')
+            value[0][','] = ''
               OptionValue.find_by_name_and_presentation_and_option_type_id(value[0], value[0].capitalize, parent_option.id)
                puts "Creating option value: #{value[0]}"
           elsif !value[1].nil?
-              value[1].gsub(';', '')
+              #value[1].gsub(';', '')
+              value[1][';'] = ''
               puts "Creating option value: #{value[1]}"
               OptionValue.find_by_name_and_presentation_and_option_type_id(value[1], value[1].capitalize, parent_option.id)
             else
