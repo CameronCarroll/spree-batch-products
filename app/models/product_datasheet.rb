@@ -198,7 +198,7 @@ end #process
     option_type = raw_option_type[0].gsub(':', '')
     
     raw_option_values = option_string.scan(option_value_regex)
-    raw_option_values.each do |value|
+    option_values = raw_option_values.each do |value|
        value = value.gsub(';', '') 
     end
     #// Load return array
