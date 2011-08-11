@@ -22,6 +22,7 @@ def process
   @records_updated = 0
   @records_failed = 0
   @failed_queries = 0
+  @skipped_records = 0
 
   product_sheet = uploaded_workbook.worksheet(0)
   perform(product_sheet)
@@ -79,7 +80,7 @@ end #process
                   :matched_records => @records_matched, 
                   :failed_records => @records_failed, 
                   :updated_records => @records_updated, 
-                  :failed_queries => @failed_queries }
+                  :failed_queries => @failed_queries}
     self.update_attributes(attr_hash)
   end # perform
   
@@ -193,12 +194,12 @@ end #process
     #// because there should only be one value per tree, always access value 0.
     #// Option values will either be in location 0 (First match) or location 1 (scond match), which gets commas and semicolons respectively.
     
-    option_type = option_string.scan(option_type_regex)
-    option_type[0].gsub(':', '')
+    raw_option_type = option_string.scan(option_type_regex)
+    option_type = raw_option_type[0].gsub(':', '')
     
-    option_values = option_string.scan(option_value_regex)
-    option_values.each do |value|
-       value.gsub(';', '') 
+    raw_option_values = option_string.scan(option_value_regex)
+    raw_option_values.each do |value|
+       value = value.gsub(';', '') 
     end
     #// Load return array
     option_return_array << option_type
@@ -208,8 +209,13 @@ end #process
   
   #// Simply instantiates a new product using the attribute hash formed in load_headers
   def create_product(attr_hash)
-    new_product = Product.new(attr_hash)
-    @failed_queries += 1 if not new_product.save
+    product_already_exists = Product.find_by_sku(attr_hash['sku'])
+    if product_already_exists
+      @skipped_records += 1
+    else
+     new_product = Product.new(attr_hash)
+     @failed_queries += 1 if not new_product.save
+    end
   end
   
   
