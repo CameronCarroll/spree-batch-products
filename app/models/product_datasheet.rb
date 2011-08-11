@@ -154,7 +154,7 @@ end #process
           #// Initialize parent product's option type.
           #// Yeah, I'm getting lazy. That parent_option shouldnt be global, but it is.
           option_type = raw_option_type.gsub(':', '')
-          created_option_type = OptionType.find_or_create_by_name_and_presentation(type, type.capitalize)
+          created_option_type = OptionType.find_or_create_by_name_and_presentation(option_type, option_type.capitalize)
           parent_product.option_types << created_option_type
             
           #// If the variant doesn't already exist, create it now that the parent product has option types.
@@ -164,7 +164,7 @@ end #process
           end 
           #// Get the parent option_type in scope:
           #// option_type array contains items, as arrays. It sucks, but that's what we get back from scan.
-          parent_option = OptionType.find_by_name(option_type[0])
+          parent_option = OptionType.find_by_name(option_type)
           #// Finally, associate option values with the variant.
           our_variant.option_values = option_values.map do |value|
             if !value.nil?
