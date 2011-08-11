@@ -147,7 +147,7 @@ end #process
         option_trees.each do |tree|
           
           option_return_array = parse_options(tree)
-          raw_option_type = option_return_array[0]
+            raw_option_type = option_return_array[0]
           option_type = raw_option_type.gsub(':', '')
           created_option_type = OptionType.find_or_create_by_name_and_presentation(option_type, option_type.capitalize)
           parent_product.option_types << created_option_type
