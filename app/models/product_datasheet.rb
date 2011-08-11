@@ -209,7 +209,7 @@ end #process
   
   #// Simply instantiates a new product using the attribute hash formed in load_headers
   def create_product(attr_hash)
-    product_already_exists = Product.find_by_sku(attr_hash['sku'])
+    product_already_exists = Product.find_by_name(attr_hash['name'])
     if product_already_exists
       @skipped_records += 1
     else
