@@ -44,7 +44,7 @@ class Admin::ProductDatasheetsController < Admin::BaseController
       if defined? Delayed::Job
         Delayed::Job.enqueue(@product_datasheet)
       else
-        @product_datasheet.perform
+        @product_datasheet.process
       end
       flash.notice = I18n.t("notice_messages.product_datasheet_saved")
       redirect_to admin_product_datasheets_path
