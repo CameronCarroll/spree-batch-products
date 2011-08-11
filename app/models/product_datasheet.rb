@@ -149,14 +149,14 @@ end #process
           #// option_types are arrays with only one value
           #// option_values have one of two possible values filled: The first handles commas, the latter, semicolons.
           option_return_array = parse_options(tree)
-          option_type = option_return_array[0]
+          raw_option_type = option_return_array[0]
           option_values = option_return_array[1]
           #// Initialize parent product's option type.
           #// Yeah, I'm getting lazy. That parent_option shouldnt be global, but it is.
-          parent_product.option_types = option_type.map do |type|
-            type.gsub(':', '')
-            OptionType.find_or_create_by_name_and_presentation(type, type.capitalize)
-          end
+          option_type = raw_option_type.gsub(':', '')
+          created_option_type = OptionType.find_or_create_by_name_and_presentation(type, type.capitalize)
+          parent_product.option_types << created_option_type
+            
           #// If the variant doesn't already exist, create it now that the parent product has option types.
           if our_variant.nil?
             our_variant = Variant.new(attr_hash)
