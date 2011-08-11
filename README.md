@@ -53,7 +53,7 @@ Record Creation: Products
 
 To create Product records through a ProductDatasheet the first row must define `:id` as the search attribute.  Each row should have an empty value for the `:id` column otherwise Product records will be located by the value supplied.  Record creation succeeds so long as the `:name`, `:permalink`, and `:price` attributes on each row are defined.
 
-Product records must be defined on a separate sheet from your variants. I don't have time to make it perfect, allowing both definitions on the same page.
+Product records must be defined on a separate sheet from your variants.
 
 Record Creation: Variants
 -------------------------
@@ -69,10 +69,7 @@ Record Creation: Option Types & Option Values
 
 Options are added to their respesctive record type, but are defined together on the Variant sheet. After creating the product and its variant, the program proceeds to handle exceptions, including option types. Option types themselves are pulled out of a product's exception_hash and associated to the variant's parent product.
 
-There are a couple syntactic elements to keep in mind for definining option types: The regular expressions used are "option_type_regex = /\w*:/" & "option_value_regex = /(\w*,)|(\w*;)/" respectively. I suggest your test your data out in something like [rubular](http://rubular.com/) or any given alternative to be sure that what you have will be matched. (Or if you're a regex wizard, you could make the query more robust...)
-The above expressions are designed to parse a string as such: "Color:blue; Size:small;" --- Option_type_regex will yield "Color: and Size:" Option_value_regex will yield each option (red, blue, green; small, large;) in an array. Your option values will not be picked up unless they are terminated with either a comma or semicolon. Your option types will not be picked up unless they are terminated with a colon. Finally, separate option type/value trees with a space.
-
-Due to not really understanding variants and options, I prepared the system to use multiple option values for a single type, for a single variant. I realize that this doesn't render prettily by default, but if you so wish, you can define something like Color:blue,green,red and it'll render in the variants partial as Color: blue, Color: green, Color: red
+The syntax for Option_Types column is pretty simply: Option types end with a colon, and its option values end with a semicolon. Whitespace differentiates between separate type/value trees. For example: "Color:blue;" NOTE: Right now, this system only accepts one option type & value per variant. I don't have time to fix it right now.
 
 Record Updating
 ---------------

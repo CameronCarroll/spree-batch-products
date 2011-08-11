@@ -145,14 +145,9 @@ end #process
         #// Creates one option_type and a number of option_values for the product and variant respectively.
         option_trees = exception_value.split(individual_trees_regex)
         option_trees.each do |tree|
-          #// options are returned as an array containing items, which are themselves arrays.
-          #// option_types are arrays with only one value
-          #// option_values have one of two possible values filled: The first handles commas, the latter, semicolons.
+          
           option_return_array = parse_options(tree)
           raw_option_type = option_return_array[0]
-          option_values = option_return_array[1]
-          #// Initialize parent product's option type.
-          #// Yeah, I'm getting lazy. That parent_option shouldnt be global, but it is.
           option_type = raw_option_type.gsub(':', '')
           created_option_type = OptionType.find_or_create_by_name_and_presentation(option_type, option_type.capitalize)
           parent_product.option_types << created_option_type
@@ -166,7 +161,8 @@ end #process
           #// option_type array contains items, as arrays. It sucks, but that's what we get back from scan.
           parent_option = OptionType.find_by_name(option_type)
           #// Finally, associate option values with the variant.
-          our_variant.option_values = option_values.map do |value|
+          our_variant.option_values = option_values.map do |raw_value|
+            value = raw_value.gsub(';', '')   
             if !value.nil?
               OptionValue.find_or_create_by_name_and_presentation_and_option_type_id(value, value.capitalize, parent_option.id)
             else
@@ -183,16 +179,12 @@ end #process
     end
   end #handle_exceptions
   
-  #// Accepts a string of option_types and option_values in the form: "Color:red,blue,green;"
-  #// Reduces this string to the parent option_type ("Color:") and child option_values ("red,blue,green;")
+  #// Accepts a string of option_types and option_values in the form: "Color:red;"
+  #// Reduces this string to the parent option_type ("Color:") and child option_values ("red;") and passes back to option_type handler.
   def parse_options(option_string)
     option_type_regex = /\w*:/
     option_value_regex = /\w*;+/
     option_return_array = []
-    #// Find the option_type and strip the colon out.
-    #// Notice that option_types and option_values are stored in an array after the scan. For option_type,
-    #// because there should only be one value per tree, always access value 0.
-    #// Option values will either be in location 0 (First match) or location 1 (scond match), which gets commas and semicolons respectively.
     
     raw_option_type = option_string.scan(option_type_regex)
     option_type = raw_option_type[0].gsub(':', '')
@@ -201,6 +193,7 @@ end #process
     option_values = raw_option_values.each do |value|
        value = value.gsub(';', '') 
     end
+    
     #// Load return array
     option_return_array << option_type
     option_return_array << option_values
