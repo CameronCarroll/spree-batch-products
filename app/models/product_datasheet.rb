@@ -91,7 +91,8 @@ end #process
   #// HEADER EXCLUSION LIST:
   #// ----------------------
       exclusion_list = [
-        'Option_Types'
+        'Option_Types',
+        'Ad_Hoc_Option_Types'
       ]
     attr_hash = {}
     exception_hash = {}
@@ -172,6 +173,31 @@ end #process
           end  
         end #option_trees
       
+      #####################################################################################################################################
+      
+      when 'Ad_Hoc_Option_Types'
+        #// Take exception value, splits on comma followed by whitespace
+        #// Each option_type should already be created. We just associate the product with the option_type in its ad_hoc_option_types array thing.
+        
+        value_ex = /,\s/
+        parent_lookup = attr_hash['product_id']
+        if parent_lookup.class == string
+          parent_product = Product.find_by_name parent_lookup
+        else
+          parent_product = Product.find_by_id parent_lookup
+        end
+        
+        values = exception_value.scan value_ex
+        
+        parent_product.ad_hoc_option_types = values.map do |value|
+          native_type = OptionType.find_by_name value.downcase
+          AdHocOptionType.find_or_create_by_product_id_and_option_type_id(parent_product.id, native_type.id)
+        end
+        
+        
+        
+      
+      ####################################################################################################################################
       else
         #Exception not found
         @failed_queries += 1
